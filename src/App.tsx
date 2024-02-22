@@ -1,26 +1,45 @@
-// src/App.tsx
-import React, {useState} from 'react';
-import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
-import {QueryClient, QueryClientProvider} from 'react-query';
-import {PetList} from './components/PetList';
-import {AddNewPet} from './components/AddNewPet';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import {Container} from "@mui/material";
+import {Box, Container} from "@mui/material";
+import {BrowserRouter, Link} from 'react-router-dom';
+import {useEffect, useState} from "react";
+import MenuIcon from "@mui/icons-material/Menu";
+import {fetchPets} from "./features/petSlice.ts";
+import {useAppDispatch} from "./app/hooks.ts";
+import {PetList} from "./components/PetList.tsx";
+import {AddNewPet} from "./components/AddNewPet.tsx";
 
-const queryClient = new QueryClient();
 
-const App: React.FC = () => {
+export const App: React.FC = () => {
+    const dispatch = useAppDispatch()
+    const [isAddNewPetOpen, setIsAddNewPetOpen] = useState(false)
 
-    const [isAddNewPetOpen, setIsAddNewPetOpen] = useState(false);
+    useEffect(() => {
+        const fetchData = async () => {
+            console.log('fetch data');
+            try {
+                await dispatch(fetchPets());
+            } catch (error) {
+                console.error('Error fetching pets:', error);
+            }
+        };
+
+        fetchData().then(() => {
+            console.log('fetchData completed');
+        });
+
+    }, [dispatch]);
+
+    const handleHomeButtonClick = ()=>{
+        setIsAddNewPetOpen(false)
+    }
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <Router>
+        <BrowserRouter>
+            <Box sx={{flexGrow: 1}}>
                 <AppBar position="static">
                     <Toolbar>
                         <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{mr: 2}}>
@@ -29,7 +48,7 @@ const App: React.FC = () => {
                         <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
                             PET SHELTER
                         </Typography>
-                        <Button component={Link} to="/" color="inherit">
+                        <Button component={Link} to="/" color="inherit" onClick={handleHomeButtonClick}>
                             Home
                         </Button>
                         <Button color="inherit" onClick={() => setIsAddNewPetOpen(true)}>
@@ -37,22 +56,16 @@ const App: React.FC = () => {
                         </Button>
                     </Toolbar>
                 </AppBar>
-                <Container sx={{marginTop: 4, marginBottom: 4}}>
-                    {isAddNewPetOpen?
-                        <Container sx={{marginTop: 14}}>
-                            <AddNewPet onClose={() => setIsAddNewPetOpen(false)}/>
-                        </Container>
+            </Box>
+            <Container sx={{marginTop: 4, marginBottom: 4}}>
+                {isAddNewPetOpen ?
+                    <Container sx={{marginTop: 14}}>
+                        <AddNewPet onClose={() => setIsAddNewPetOpen(false)}/>
+                    </Container>
                     : <PetList/>
-
-                    }
-                    {/*<Routes>*/}
-                    {/*    <Route path="/" element={<PetList/>}/>*/}
-
-                    {/*</Routes>*/}
-                </Container>
-            </Router>
-        </QueryClientProvider>
+                }
+            </Container>
+        </BrowserRouter>
     );
 };
 
-export default App;

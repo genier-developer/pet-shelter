@@ -1,7 +1,6 @@
-// src/features/petSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../app/store';
-import {Pet, PetState} from "../models/Pet";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RootState } from "../app/store";
+import { Pet, PetState } from "../models/Pet";
 
 export const initialState: PetState = {
     pets: [],
@@ -10,7 +9,11 @@ export const initialState: PetState = {
 
 export const fetchPets = createAsyncThunk('pet/fetchPets', async () => {
     const response = await fetch('http://localhost:3000/pets');
-    return response.json();
+    if (response.ok) {
+        return response.json();
+    } else {
+        throw new Error("Failed to fetch pets");
+    }
 });
 
 const petSlice = createSlice({
@@ -20,14 +23,14 @@ const petSlice = createSlice({
         addPet: (state, action: PayloadAction<Pet>) => {
             state.pets.push(action.payload);
         },
+        deletePet: (state, action: PayloadAction<string>) => {
+            state.pets = state.pets.filter(pet => pet.id !== action.payload);
+        },
         updatePet: (state, action: PayloadAction<Pet>) => {
             const index = state.pets.findIndex((pet) => pet.id === action.payload.id);
             if (index !== -1) {
                 state.pets[index] = action.payload;
             }
-        },
-        removePet: (state, action: PayloadAction<string>) => {
-            state.pets = state.pets.filter((pet) => pet.id !== action.payload);
         },
     },
     extraReducers: (builder) => {
@@ -45,10 +48,6 @@ const petSlice = createSlice({
     },
 });
 
-export const { addPet, updatePet, removePet } = petSlice.actions;
-
-export const selectPets = (state: RootState) => state.pet.pets;
-
+export const { addPet, deletePet, updatePet } = petSlice.actions;
 export const petReducer = petSlice.reducer;
-
-
+export const selectPets = (state: RootState) => state.pet.pets;

@@ -3,9 +3,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import {petReducer} from '../features/petSlice';
 
 export const store = configureStore({
-  reducer: {
-    pet: petReducer,
-  },
+    reducer: {
+        pet: petReducer,
+    },
 });
 
 export type RootState = ReturnType<typeof store.getState>;

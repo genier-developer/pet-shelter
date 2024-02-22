@@ -15,3 +15,4 @@ export interface PetState {
     pets: Pet[];
     isLoading: boolean;
 }
+

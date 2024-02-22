@@ -1,53 +1,51 @@
-// src/components/AddNewPet.tsx
 import React, {useState} from 'react';
-import {useMutation, useQueryClient} from 'react-query';
-import {ButtonGroup, Card, Container, TextField} from "@mui/material";
-import Button from "@mui/material/Button";
-import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import {useAppDispatch} from "../app/hooks.ts";
+import {addPet} from "../features/petSlice.ts";
+import {v1} from "uuid"
+import {Card, Container, FormControl, Typography} from "@mui/material";
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
-import Typography from "@mui/material/Typography";
+import Select from '@mui/material/Select';
+import Box from '@mui/material/Box';
 
 
-type AddNewPetProps = {
-    onClose: () => void;
-}
+type AddNewPet = {
+    onClose: () => void
+};
 
-export const AddNewPet: React.FC<AddNewPetProps> = ({onClose}) => {
-    const [petType, setPetType] = useState('');
-    const [petName, setPetName] = useState('');
-    const [petAge, setPetAge] = useState(0);
-    const [petSex, setPetSex] = useState('');
-    const [petWeight, setPetWeight] = useState(0);
+export const AddNewPet: React.FC<AddNewPet> = ({onClose}) => {
+    const [pet, setPet] = useState({
+        petType: '',
+        petName: '',
+        petAge: '',
+        petSex: '',
+        petWeight: '',
+        petImage: ''
+    })
+    const dispatch = useAppDispatch()
 
-    const queryClient = useQueryClient();
-
-    const addNewPetMutation = useMutation(
-        (newPet: { name: string, age: number, sex: string, weight: number }) =>
-            fetch('http://localhost:3000/pets', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newPet),
-            }),
-        {
-            onSuccess: () => {
-                console.log('Pet successfully added');
-                queryClient.invalidateQueries('pets');
-                onClose();
-            },
-            onError: (error) => {
-                console.error('Error adding pet:', error);
-            },
-        }
-    );
-
-    const handleAddPet = () => {
-        addNewPetMutation.mutate({name: petName, age: petAge, sex: petSex, weight: petWeight});
+    const newPet = {
+        id: v1(),
+        type: pet.petType,
+        name: pet.petName,
+        age: +pet.petAge,
+        sex: pet.petSex,
+        weight: +pet.petWeight,
+        isAvailable: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        image: '', // Add the image URL
     };
+    const handleAdd = () => {
+        console.log("add pet")
+        dispatch(addPet(newPet))
+        onClose()
+    }
+    const handleCancel = () => {
+        onClose()
+    }
 
     return (
         <Card elevation={10}
@@ -55,45 +53,47 @@ export const AddNewPet: React.FC<AddNewPetProps> = ({onClose}) => {
                   marginTop: 'auto',
                   marginLeft: 'auto',
                   marginRight: 'auto',
-                  marginBottom: 5,
-                  maxWidth: 300,
-                  padding: 2,
+                  maxWidth: 250,
+                  padding: 5,
                   textAlign: 'center'
               }}>
             <Typography variant={"h5"}>ADD NEW PET</Typography>
             <Container sx={{marginTop: 2}}>
                 <TextField
                     sx={{marginBottom: 2}}
-                    type="text"
-                    size={"small"}
+                    id="outlined-basic-type"
+                    size="small"
                     label="Name"
-                    value={petName}
-                    onChange={(e) => setPetName(e.target.value)}
+                    variant="outlined"
+                    value={pet.petName}
+                    onChange={(e) => setPet({...pet, petName: e.target.value})}
                 />
                 <TextField
                     sx={{marginBottom: 2}}
-                    type="number"
-                    size={"small"}
+                    id="outlined-basic-type"
+                    size="small"
                     label="Age"
-                    value={petAge}
-                    onChange={(e) => setPetAge(+e.target.value)}
+                    variant="outlined"
+                    value={pet.petAge}
+                    onChange={(e) => setPet({...pet, petAge: e.target.value})}
                 />
                 <TextField
                     sx={{marginBottom: 2}}
-                    type="number"
-                    size={"small"}
-                    label={'Weight, kg'}
-                    value={petWeight}
-                    onChange={(e) => setPetWeight(+e.target.value)}
+                    id="outlined-basic-type"
+                    size="small"
+                    label="Weight, kg"
+                    variant="outlined"
+                    value={pet.petWeight}
+                    onChange={(e) => setPet({...pet, petWeight: e.target.value})}
                 />
 
-                <Box sx={{display: 'flex', alignSelf: 'left', marginBottom: 2, marginLeft: 3.5, textAlign: 'left'}}>
-                    <FormControl size={'small'} fullWidth sx={{paddingRight: 3.5}}>
+                <Box sx={{display: 'flex', alignSelf: 'left', marginBottom: 2, textAlign: 'left'}}>
+                    <FormControl size={'small'} fullWidth sx={{paddingRight: 0.5, paddingLeft: 0.5}}>
                         <InputLabel>Sex</InputLabel>
                         <Select
-                            value={petSex}
+                            value={pet.petSex}
                             label="Sex"
-                            onChange={(e) => setPetSex(e.target.value)}
+                            onChange={(e) => setPet({...pet, petSex: e.target.value})}
                         >
                             <MenuItem value={'male'}>Male</MenuItem>
                             <MenuItem value={"female"}>Female</MenuItem>
@@ -101,40 +101,39 @@ export const AddNewPet: React.FC<AddNewPetProps> = ({onClose}) => {
                     </FormControl>
                 </Box>
 
-                <Box sx={{display: 'flex', alignSelf: 'left', marginLeft: 3.5, textAlign: 'left'}}>
-                    <FormControl size={'small'} fullWidth sx={{paddingRight: 3.5}}>
-                        <InputLabel>Pet</InputLabel>
+                <Box sx={{display: 'flex', alignSelf: 'left', marginBottom: 2, textAlign: 'left'}}>
+                    <FormControl size={'small'} fullWidth sx={{paddingRight: 0.5, paddingLeft: 0.5}}>
+                        <InputLabel>Type</InputLabel>
                         <Select
-                            value={petType}
-                            label="Pet"
-                            onChange={(e) => setPetType(e.target.value)}
+                            value={pet.petType}
+                            label="Type"
+                            onChange={(e) => setPet({...pet, petType: e.target.value})}
                         >
-                            <MenuItem value={'dog'}>Dog</MenuItem>
-                            <MenuItem value={"cat"}>Cat</MenuItem>
+                            <MenuItem value={'cat'}>Cat</MenuItem>
+                            <MenuItem value={"dog"}>Dog</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>
-                <Container sx={{marginTop: 3, marginBottom: 4, display: 'flex', justifyContent: 'space-between'}}>
-                    <Button
-                        variant={"contained"}
-                        sx={{marginTop: 1}}
-                        size={'small'}
-                        onClick={handleAddPet}
-                    >
-                        Add Pet
-                    </Button>
 
-                    <Button
-                        variant={"contained"}
-                        sx={{marginTop: 1}}
-                        size={"small"}
-                        onClick={onClose}>
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: "space-between",
+                    alignItems: 'center',
+                    marginTop: 5,
+                    paddingRight: 0.5,
+                    paddingLeft: 0.5
+                }}>
+                    <Button variant="contained" onClick={handleCancel}>
                         Cancel
                     </Button>
-                </Container>
+                    <Button variant="contained" onClick={handleAdd}>
+                        Add
+                    </Button>
+                </Box>
+
             </Container>
         </Card>
+
     );
 };
-
 

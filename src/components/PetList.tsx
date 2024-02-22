@@ -1,17 +1,14 @@
-//src/components/PetList.tsx
-import React, { useState } from 'react';
-import { useQuery, useQueryClient, QueryClient } from 'react-query';
+import { PetItem } from "./PetItem";
+import { useState } from "react";
 import { Container, Grid, LinearProgress, Typography } from '@mui/material';
-import { PetItem } from './PetItem';
 import { AddNewPet } from "./AddNewPet";
+import { useAppSelector } from "../app/hooks";
+import { selectPets } from "../features/petSlice";
+import {Pet} from "../models/Pet.ts";
 
-export const PetList: React.FC = () => {
-    const queryClient = useQueryClient()
-    const { data: pets,  isLoading, } = useQuery(['pets'], async () => {
-        const response = await fetch('http://localhost:3000/pets');
-        return response.json();
-    }, {});
-    console.log(pets,isLoading,)
+export const PetList = () => {
+    const pets = useAppSelector(selectPets);
+    const isLoading = useAppSelector(state => state.pet.isLoading);
     const [isAddNewPetVisible, setIsAddNewPetVisible] = useState(false);
 
     if (isLoading) {
@@ -29,12 +26,10 @@ export const PetList: React.FC = () => {
                     </Grid>
                 )}
                 {isAddNewPetVisible ? (
-                    <AddNewPet onClose={async() => {
-                        setIsAddNewPetVisible(false)
-                    }} />
+                    <AddNewPet onClose={() => setIsAddNewPetVisible(false)} />
                 ) : (
                     <>
-                        {pets.map((pet: any) => (
+                        {pets.map((pet: Pet) => (
                             <Grid item key={pet.id}>
                                 <PetItem pet={pet} />
                             </Grid>
@@ -45,5 +40,3 @@ export const PetList: React.FC = () => {
         </Container>
     );
 };
-
-
